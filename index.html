@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dr. Sunny — Your Health Helper!</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #e0f7fa 0%, #f0f4ff 50%, #fce4ec 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+
+  h1 {
+    font-size: 2rem;
+    color: #1a237e;
+    text-align: center;
+    margin-bottom: 4px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+  }
+  .tagline {
+    font-size: 1rem;
+    color: #5c6bc0;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    width: 100%;
+    max-width: 540px;
+  }
+
+  /* ── ROBOT ── */
+  .robot-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  /* Speech bubble */
+  .speech-bubble {
+    background: #fff;
+    border: 2.5px solid #5c6bc0;
+    border-radius: 18px;
+    padding: 12px 18px;
+    max-width: 320px;
+    font-size: 1rem;
+    color: #1a237e;
+    line-height: 1.5;
+    text-align: center;
+    position: relative;
+    min-height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(92,107,192,0.15);
+  }
+  .speech-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -16px;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 8px solid transparent;
+    border-top-color: #5c6bc0;
+  }
+  .speech-bubble::before {
+    content: '';
+    position: absolute;
+    bottom: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 7px solid transparent;
+    border-top-color: #fff;
+    z-index: 1;
+  }
+
+  /* Typing dots */
+  .typing-dots { display: none; gap: 5px; }
+  .typing-dots span {
+    width: 9px; height: 9px;
+    background: #5c6bc0;
+    border-radius: 50%;
+    display: inline-block;
+    animation: bounce 1s infinite;
+  }
+  .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-7px)} }
+  .typing-dots.show { display: flex; }
+
+  /* Robot SVG */
+  .robot-svg {
+    width: 180px;
+    margin-top: 14px;
+    filter: drop-shadow(0 8px 18px rgba(92,107,192,0.3));
+    transition: transform 0.3s;
+  }
+  .robot-svg.talking { animation: wobble 0.5s ease-in-out infinite alternate; }
+  @keyframes wobble { from{transform:rotate(-2deg)} to{transform:rotate(2deg)} }
+
+  /* Eyes blink */
+  .eye { animation: blink 4s infinite; }
+  .eye:nth-child(2) { animation-delay: 0.1s; }
+  @keyframes blink {
+    0%,90%,100%{ ry: 12; }
+    95%{ ry: 2; }
+  }
+
+  /* Mouth */
+  #mouth-happy { display: block; }
+  #mouth-talk  { display: none; }
+  .robot-svg.talking #mouth-happy { display: none; }
+  .robot-svg.talking #mouth-talk  { display: block; }
+
+  /* ── SUGGESTIONS ── */
+  .suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+  }
+  .sug-btn {
+    background: #fff;
+    border: 2px solid #5c6bc0;
+    border-radius: 20px;
+    padding: 7px 14px;
+    font-size: 0.85rem;
+    color: #3949ab;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    font-weight: 500;
+  }
+  .sug-btn:hover { background: #e8eaf6; transform: scale(1.04); }
+
+  /* ── INPUT ── */
+  .input-area {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+  }
+  .input-area input {
+    flex: 1;
+    border: 2.5px solid #5c6bc0;
+    border-radius: 24px;
+    padding: 12px 18px;
+    font-size: 1rem;
+    color: #1a237e;
+    background: #fff;
+    outline: none;
+  }
+  .input-area input:focus { border-color: #3949ab; box-shadow: 0 0 0 3px rgba(92,107,192,0.2); }
+  .input-area button {
+    background: #3949ab;
+    color: #fff;
+    border: none;
+    border-radius: 24px;
+    padding: 12px 22px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .input-area button:hover { background: #283593; transform: scale(1.04); }
+  .input-area button:disabled { background: #9fa8da; cursor: not-allowed; transform: none; }
+
+  /* ── CHAT HISTORY ── */
+  .history {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 260px;
+    overflow-y: auto;
+    padding: 4px 2px;
+  }
+  .msg-row { display: flex; gap: 8px; align-items: flex-end; }
+  .msg-row.user { flex-direction: row-reverse; }
+  .msg-bubble {
+    max-width: 78%;
+    padding: 10px 15px;
+    border-radius: 16px;
+    font-size: 0.92rem;
+    line-height: 1.5;
+  }
+  .msg-row.user .msg-bubble  { background: #3949ab; color: #fff; border-bottom-right-radius: 4px; }
+  .msg-row.bot  .msg-bubble  { background: #fff; color: #1a237e; border: 1.5px solid #c5cae9; border-bottom-left-radius: 4px; }
+  .msg-icon { font-size: 1.4rem; }
+
+  .footer { font-size: 0.75rem; color: #9fa8da; text-align: center; margin-top: 8px; }
+</style>
+</head>
+<body>
+
+<div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:6px;">
+  <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAAQAElEQVR4AexdBUCVVxt+LnZ3O91vd212d3egqCigAhKCSliAIioqAiazgzl7bvactVlz0zljYqAY2C226P++By+75L3g5XLjoOeLk+953vOc/s41i/4Y/UkaiYGplgEzyD+JgAkjIAlgwsqXWQckAWQpMGkEJAFMWv0y8yZMAKl8iYDsAskyYOIIyBbAxAuAqWdfEsDUS4CJ518SwMQLgKlnXxLAFEuAzHMsApIAsVDIB1NEQBLAFLUu8xyLgCRALBTywRQRkAQwRa3LPMciIAkQC4V8MAUE4udREiA+IvLdpBCQBDApdcvMxkdAEiA+IvLdpBCQBDApdcvMxkdAEiA+IvLdpBAwIQKYlF5lZjVEQBJAQ6CkN+NEQBLAOPUqc6UhApIAGgIlvRknApIAxqlXmSsNEZAE0BAog/YmhU8SAUmAJKGRDqaAgCSAKWhZ5jFJBCQBkoRGOpgCApIApqBlmcckEZAESBIa6WAMCKjLgySAOoSku1EjIAlg1OqVmVOHgCSAOoSku1EjIAlg1OqVmVOHgCSAOoSku1EjYMQEMGq9ycxpCQFJAC0BKaMxTAQkAQxTb1JqLSEgCaAlIGU0homAJIBh6k1KrSUEJAG0BKReRSOF0RgBSQCNoZIejREBSQBj1KrMk8YISAJoDJX0aIwISAIYo1ZlnjRGQBJAY6ikR0NAIKUySgKkFDHp36gQkAQwKnXKzKQUAUmAlCIm/RsVApIARqVOmZmUIiAJkFLEpH+jQsCICGBUepGZ0RECkgA6Alomo58ISALop16kVDpCQBJAR0DLZPQTAUkA/dSLlEpHCEgC6AjoNE1GRp5qBCQBUg2dDGgMCOiUAO/evcfF8Bu4eEX75tqN23j4+Jkwz1+81Jpu0kJWxiDyzgMhK8vM8n789ElrMqtGtGbjbrhNWYC/z17ClWu3EHblerImPCIS63/ah7E+87Dz16OqUaX6+WIK9P2WykiqE0pFQJ0S4NrNO2jWwwFNuttr3XQYMAY2o6cL4zwxCLMXrsXGbftx9frtVMDyX5AmPUZC26Z5T0f0GT4JNmNmCONE8s6YtwYLVm7Bsb/O4fWbt/8J8IVPXv5LsHztNljYe6NlLwc07mKbrGnT1xmuk4KxYt0O+AWt+sLUY4KnRN8RN+7EBNLRVacEAFVyHz9+TJOsPX76HEf/PCvMDqq5/Bd8L2q+3jYTYG7rBa4B0yThVEQaTRhcibglZGWZd+47hsDFGzA1cBWsR89Aq76j4D17OSLvPkhF7HGDPI+KaQ3vP3yCV6/VE4tbo7fv3sWNxIjfdEsAHQP58tUb3LpzH/sPn0S7/q5w9ZqL23cf4v2HaB1LollyH6KjqVv0VHRVFlJrUK/TCLhSV+RG5D2S+YNmkcTzZd69TazNhcM/4MH5nXh4YRcehe1O1BzdsRgZMsQUi+4dmsaG1deHL5UrJqdfGouBhA/dvIdag0nYsuNgqguULrPKY6bQTXvQfainaCGepWJsU79OlViRg5dswNGT53CEWsrDJ85A1Zy9EI737z+ICiI6OqaVrlapTGxYY30wKQKwEsNoQDZh+nfYvf8PfjUIc4sGzEHUReo8aCwuXL6eIpkb1a2OXDmzizChm3bDxsUvUbMk9Ce8efsOew+dEH750qrJN3wzamNyBGBtck1q7ToN2/ceNYiWgGV+/+EDLobfRD/bSTjx9wXwOILt1ZmCBfKiwTfVhLeol6/BJv6EU/bsWdGmWV18oC7Yd6u3Cr8O1n2QNWsW8WzMF5MkgFKhrl7BYnygfDeE+937j8GzXIf/OKORuPny5EK39k2QPVtW4b9UiSIImOyMZUETYs3iWZ5o+G11jPcLEX7y5MqBjq0aiGdjv5g0AZ4+j0Lgd+tx78ETg9Jz+PVI2HvO1rg7xIPZ4kULijzyVPRHmoVqUq8GlKZu7co4TmOD3QeOCz8tGteBKfT/ObMGSwAzMwUUCgXn4YvMyTMXsWXnoS+KIz0CP3j0FP3tvalbdENt8jmyZ4OH4yBkyZJZDHStaRxQqEonsdjFU6M3aZYpZNVW8BRobqr9e3VuETtuUBu5gXvQawK4OwwEG7eRFlA1bOfpNBjjyCjth5h3RO3qFWCWClIsoinHF1GvElWlMn5t3827t0ZjGqAmmqiGljy3v2rDLprff6M2BBfqAT3+mxItmD8P+pEMZmYKjKdJAW4BOJIBPduifYv6/GgSRq8JoCx0XOBVDdu7jjCHq625IAi7+XmMwJp5k7Cc+raFCuRNkfLu3H+EXftjmv/4Ad2JfGlhZk60x9IAT+xdHwgr807ISrVz/LTVvX+g9Yzvt/yCP0+HqfMq3B1t+sR2bZ48e4EDR05hSsDy2C0Plct/jQkuQ5ApU0bh3xQuek2AlCiAm/cihfKjc5uGVKiCoDr/rUk8i1b9iE/xp0c0CZhKPzwo5Vq4VtXymDlpJH5ZF4iubRvHDlY1jZa7MJMDVoDXDNSF+V+p4hhtN0B0b3jOf+b8UPCsj0KhQI0q5bBxqR+4u6QuHmNyNxoCqCqlRLFCmO3liMrlS6taJ/vMA+JrOt6HoioQyzp/2miMHzUYPAuj6qbu+WxYOH79/S913oR7Sxrgdmsfd4WX8fIaY42ihfMLP6Z0MUoCsAIrlP0K/bq2QqaMmjXnb968xZ17DzloHKPpRi4r1+liG0OcwCl8yZ4tC6z7d0aw76jkQybiumDFlkRsE1q9fP0GYZcjYh0qliuF1dR1bNagplYmFWIjNpAHoyWAmZkZGtIgM1/eXBqpgmdAEltl5ZVjTcyDR0+oC6VRUsl6YsJ2btMIHjQBwM/JelZxvBIRiUPHTqvYJHw8fe4yLB2mgGe+zGjwW7t6RWxaNh0lixVG+PXb4OnRhKGM28ZoCcBqq165LPLmzsmPas279x/AO0rVekzCw9u377RagIbSwLgezc8nkVwCa57FCruS9DYJ3nE6aKQPTp29KMLyLFQQtTSfaE1g1KQg2NDKOBNEOJrQxagJkJlmMxRU0+lCn2/fvdd4e4Im8uTPl1us4GbNmlkT72JLB29oe0VdnPgBeIpz/LQQ8GyXGQ14J7oOxYyJDqLLY+vmj900A3bhUgSGOPnS4tp/3aP48Rjju1ETQJcKUygU4H/aSpMLattmdVG4QD6No4y4dRe8BVw1AO/v4SleXuzibRDLgyfChaaQs2TOhAcPn6BXp+boTLNPGTNmEASxGuX3RS2hatqG8CwJoCUtabPwK0X6qnhh1K5WXvmq9n7lWqTY7Kbq8cHDpzhI8/2dWjfE4tme6NquMRQKBXiun7c8WFt0RYCPI+rVriKCXScSzQlZh9ev34pW5VzYVRw5ceaLjIhYSxdtR2PUBHge9RK8WKQJaDwo5EKhid/E/HBXi8pVYk5fZFe/TlWNwz968izBekDUy1fgsdCcKaPE3S9oFZp0tYtjulm64/zFayIdXh9YTavL+4+cRIYMGbD3tz8xbMyMLzIiYj29GDUB/vz7Ah4/ea4R9Pny5Ma3NSpp5DcxT9xlARTQ9l/xIgVTFOWrN3G3RZQr8xXm0voCd3FmLVyLwO/WJfgo/lL4TTx7HhWbDo8jZsxdI3JTr1ZlYc8f76fWiAj09GK0BHhN8/q7DhwHL3Bpgj0PmDWdMk0svrRqATq2Ttm25P2HT8URjynJ5ORFviyZM8ZuHeHtI4mZFo3qiPBPn72gad1P4NMqdLhALtLW5cVoCcAro5u2HRBK1ARQ/mqKF4U08ZuYn0w0iFQouLgl5pp6Oy68KQl9n9YjEvNfp3oFuDsOUmsmuw9DlQr/w8KZbuC1lH/OX6FK5EViURqFnVERgPfyPHn6Aj/vOQxrl2kJZkSS05jVgM5IycJT/LgyZsiYqp2o8eP50vf4tfWCFZtRqXF/1GkzFHbus+A2eT7cpyxIYFxoLWCIsy+mB68Gb51u9G11XLp6E3w8SvTnb4S/VDZ9DK/3BOD5df6E8UXUK/BiExdyVSB5C8OZf8PFLEXI6q2w85gFezKqftQ958ubG7z6qs5fsu5c+bNJ1lPaO2bIEFelAdTv5747nyyxadt+UaCX/7Ad8c36rfvwkQq6Re926Ny2EbglmRq4Ehwu7aVOvxTiopV+ciSaMu/DadnbCe3NXdHW3AUt+zijKR9UpXKwViuyG+gwWcxS+JLC9h8+CV7VTTTCJCxtB3dHscIFknBNX+v4hFcnTQUa9Kr66aDyaWMXmu8/sGU+Dm8LSWAObV2I+dPHgKdLecFsxFj/JLeIq8Zv6M96TYCLV27gMjXD/AlgeESkeGY7VXP52i3cvf8IXMvxFF5KFcL9ftUPRVIaXuk/pvKPuSrttHHnD/dTEk+jzx/AK8OMth+AnDmyidfT5y6Je8H8eaFqChfMh7Jfl0Ce3Dlx78FjeExdhOMnz9MYQAGr/p1RumRRGOufXhMgrUHPnTM77C17olDBlH1Ak9ZyqcYfcfOO6muKn3mjm/WALuA1jrtUuB3HBcDGJe7RKPtorp+/J+Ca3813IXbtOybSqVW1PJo3rKXVLR4iYj26mDQB2rWoj75dW+JLBr9prcud+xP/Ui2xdCuVKyU+dlF14y/NBvftAP5YiBcFecGLD8ZSGp727NSmEc5fuobBDlNiC3/l8qWxMngCShQthC40Jhg2sKsYHE9xHwafsdbwHmOFiS5DMGGUpbB3cxiIMXb9MZoM28/2dhTfZNhZ9lAVR++eTZIAXBvyQG+R/1hkzpxJ75SiFOjU2Uu4efseoLRQcy9K45jENs/xl2ChC72RTeWcHx4brF3kg5HWvXH2wlUxa/bPv1fETFbtahWwfrEvitEiXK1q5eHrPhzTx9thLHWn7If0hINVbzha98Go4f3A+4rYnj8bVX6nzfZD+nXEEPOO8PUYrkbq9HU2OQLwfL+DVS8E+7qkL/JqUueDsHgt4/GTF2p8/ufM3/TmzpnjPwuVp2oVy4ALqPJrMz4vqFmDWti57yh4wMvdH/Zer04VzJnsBH2dFGAZtWlMigDcrM/zc6WazCLFnx1qE3RN4uIDsPh4dyaCJv75u4fGdauBtzwk5X/YoG6wNO+EapXLUldlAAKXbMBYn/liFyiH4Zp82ZxxMJUzgTjPRk8ArvF5apD7rXt+CATP92dJYbeHN8rFGDNkMCOTIYMoaDx2YMOFzozsGVBtmKiXr2HpPBURN+9qHB1v4+AP25MLwPl2tumLn1fPxNbdv4F3fT6PeiW6RsouDc8IJReHsbkZJQF4A1nzhrXB8/tBU5yxaZmf6Ldmy5YlxfrjTxP5/CE2450HY4KLJSa5DoH3aGt4jbaKMa5WGNynfYpPdEhMGJ7O9QlYDt6GnJh7UnZ8ypsm3RaeEl20cgum0Yovx8XjhmnjbTHa1jxVR7NwHIZszPRZeJ6D1sTYWfZAyEw3HNqyAId/WkQ1nD8Wz3aH9xhr8AkImhSMpHCIPYNohDlcaNDHNagjDQLthxQmjQAAEABJREFUh/SA0owc2hO9O7cgAqScYKrpcrdnGC1A8Vk/qvaaPHu5DtXEG/Yc/ANLvt8m/DIuS2Z7oFu7JuJ3FISlnl3SWhy9JgCfl6OJ8aWZBi6AVSp+DV7Y4oWb/Hlzg2d70hrAL42f99nwQt6Pu35Dq77OYksHT1dqGm9G6o5x3z1vHvUf//MU6Php34mtz7zoNX2iPSqWLYV+IybBwTMAvGNU03SNxZ9eE8BYQI6fj3fv3+P0+Sv4+ZfDmBq8ChY0/+4wbg4ePHoa36va929qVhRHqajzGPXqNbxnLY0d8A6z6Iqm9WvC02+ROCXibNhVeM9eBlM7GUISQE3JacJ7j7RsWvR2xmDHKXDxmov5yzfTPHy4+PxQjSgJnHPmyA7Lvh1RIH+eBG7xLXjAqzw2pX+PNnAZ0Q/8qSR/8aX0yyvAM+aFKl9N4i4JoEbNqvuOtPXM+5t4W8ILmoFRk3ySzrzrc5hFF/SjlWx13wxcDL+BzTsOirh4tZgH9DwjxFOnPI4ZTtOjfFQje1j/8z7wOUj8bApGEsBAtcynOXg6DlIrPY8ntu89Av44ngt9ny4txd4nhUKBZg1rwW3kQLGlYRDNYvGULp84zb+hxt00tZEbgQc9JoARoJsGWchgZkYzTs0xeawNuBVQl8TzqJc4fvJf0cXKli2r+D2B7kM80aq3E3iLeUeLMehpNQ5MkujoaHGIwPZfiTCpGI+ok0Uf3SUB9FErScjEZ4c6WvfG3Kku0PQI+Nv3HuHg0VMiRv7Od+O2A/jz9AXwoPf0ucv4658w8J6j23cfgr//ZY+Xr94yuJ+OYrlTYyQBUoOajsMoFArUrFIOvCltossQZM6k+Qa+Y3+di5XWsm8H6vJYJGuUnkM37VE+GvVdEsAA1Ms/BhK6wAvcT0+puGcvhMcG8Rtnq/ZUCP61SA7ArcKjx8/40aiNJIAeqpcHq7x/nw+wDft9LcY5DULRQvnFVuWUirtu668iCI8XvGYuhbvvwmRN5J37wj9ftu75nW9GbSQB9Ei9vGnPvFsr+NLKNv/c03w/VxTIl/uLJFR+U8wrznzCgzqjekS8sX8Qz8BKAjAKOja8c7R6pbK0iNVBfHMbNNkZv/24ABsW+4qfS+LfDEvJmaDJic8tCbv37NhMpKVubxX/SB7vEeIw3BLx3ZiNTgnA+3QenN8BTY0+AP/g3HZo29w78zP2bwpGgLcj+MfyBvZuJ37OqUTRglAuSGkr7z+umI4lAR7g3wLQZF8VzzCtmjsR/hPtMd7ZUitiaKpv9sdlRCuJahiJTgmgoUzSmxYRKP+/kujRoVmKiFW7egXwh/RaFENvo5IE0FvVSMF0gYAkgC5QlmlojICuPUoC6BpxmZ5eISAJoFfqkMLoGgGjJcDLl6/Fl0/K/S2JAcs/A8Q/DPHx46fEnNPMjmXidF+9ivtjFkklGPXyFfhHK5JyV2evXAtQ50+b7nxMZXqkm9I86JQADAovzR/+4x+wOUL3h49T/hWUJpn0mDwPnmQePUo6/jmLvgf7e6RFGbigHjlxRuSP88h7cbgAq8rMMrn7zMXEaYtUrRN95gWs0ZOCMH/phlSRYPP2/Vi7eXeCsDFy/pPA/mpEJE6duQg+lTtRgTSw/PtMGGbOW4nrt+4k6vtG5F2Rn2N/nknUXZeWOiXAi6hX8J+7GtbOU4Wxonv7fqPgMWU+7tx7qNV8h125Tgq4i+Tq9qvXI3Hm38spPk06OUF5V6X1KL/Y8zetnH3RurcT3DmP9x+JoPzrNcf/OofTnw+rFZZJXMzMFNi2+zdwweSW6sq1W2jSeRiu3bidRIi41vsO/YENW/cmKOiRdx5gmIsf+K4aInTTLjh4zBQHDqvap+SZCbBm/Q5E3o7ZVtG4kw2cPGeBd6NyPDdv3cMCIvTufcf4NV2NTgnw8dNH0S0pX7YUPJwGC1Mwfx4sDf0ZS1ZvBe9Hv37zjgDqydPnuEYFlNHhpvQeFZ6wyxFCMVwQ2J5N9MeP4kTjS1TgWZnKDzm2rPJHaMgUcPwfyc/DR09xKfwGbpFSuPbjsEF+o7F9bSCKFSnAr+AWij8ICbt8nfzdw4foaGHPFybonbsP8PzFS1ymeG7cupsocTgMt2qlShaFu+Ng9O3WWpyyvHLdTrhPni/yX7J4YRz4OQRb18zmqIV58uwFLlIeblDhYILcjLwn/CoUCpw9vA7+3k4inggq+GGXI3CbZOGTnPlQW/6NhPsPHovTsxkz7l6JSOnCctMtwX/GmuV8EfUyjlsUVVI3Iylv794Je8aEP9pn2SLv3Bc6Eg50YR3dun2PyBiJBw+fkE3C/4w7y3vl2k3cf/hYyK30dYvie/DoCenluqgAOS2lm67uOiWAMlNVKpSGzaBuwmxZ6Y9SJYqIfelcCDqbO8LDJwhOHv4YOHy8KHAhKzfDwnYiGne0hgXZLV69BfylE8e3LPQnDLKbhKZdRqCPlQcCFoSKgrPi+58wdfYSsIL//Ptf2DhPQcuu5GeIO+YtXg/uf69etw1+AUtFGm/evsOaDTthOdIHXGP1GOyG6UErRVycjiPJY2E7AeOmzEPzbsPRzcIFG6lmTUpptapVgM3ArvD1HIGtq2aiZ6dm2PnrUewgwyTyC1iOlT9s46jB8jl4zKI82KLb4LHw9F2A7pbu+GHLL8LdZpQvAkPWUkvwO/wClwu7ceTHbsw0/HvpGuYt2UBye6NlN1t06OuM0ZMCEXYpQvg7++8Vcdf08ok8Zs2aBRnMMiCKxlEhjP2ICWhGrU6foe5YumYr+QDOnL9MtTrly3IMpekISwcv7Nx7WLipXtx8gsUrE2jU+ACM8QoS73zhrqe102Q0J71YUBq/HDjO1jo16UIA1RzmyJ4NXCNzLc/2t6lp3rrjAPDpE3p1bY0Dh/+Cf/BKfP1VMRzZtRxflyqBwIWhOH7yLPb//id8Zi5BoYL5sHvjXPTp1gq/H/+Haub3iKQaMjziFt5/iMb2PYfp/gE/Uo0729cFlcp/jSxZMuEG1eLhVDNxrf3LwT/g7b8E39ashEPbvkP3js0RsmIL5ixcy2LhLnXR+FveEsUKY/eG+ciZMzsWr9oMrkWFh2QuvB/Hfmhv4ePvs5fA6XGNyDUgkz4wZB1+OfAHvgvwRBDJ9+/Fa+CW8Bm1Nhzo6Il/cIEKet06VeBqZ8FWGOcyFLN8RqECtabVq5RD80Z18OuPC+HtPlwQZff+mO4FE10ESOKy8adfsXzttlhz8OhJ5M+XWxwafJCxn7sKXds3xZ7NCyit0pgasEzgzocKc+u6fK4Pgqe5idbaf+5K8MSCalJeY4eDj24pU7oEvN2Gw9/LKdb53IVwlCpZDAP7dAQ/h27cBcYj1oMOHtKFAE+evqC+9xVhrF2mUpcnCo3r10SeXDlFlls0+RbzZnpiDHUhzl24ImpoN6eYfSnuzpbg40OOHD8Nrvn4fBs38le7ekWMGTkIO9cFoVCBfCIe5SVHjmxUgB8hdONu8KGwjRvUhEIRN+v7Dp5AhXKl4DTCHNUqlcVYx0EQhZ0KknJA+FXxIhhLXbcaVcvDcVg/nAsLj20hlGkldS9SKB+qVioD7o6p+rl3/zH2UM3HH6b37NwCLZp8A+fh/VS9iOdPVCHw2T9c4NmCT3wuV+YrscWhdo2K6EFho2i2iMnNafx29BQePX6GXLmys/ckzfqtvyJgYahoYWYvWCO6mHlz5xJnKv127JSoLBrWrSFOjWvbsgFVHJlxlAavpaiL5zCsP3Ub34NPkeYwd+4+xMl/LsRJ63+li4O7qbzHieXlcEoPXMksmOmB2VNcKP4soiLkrpnSXRf3uKVAFylSGnsPnYDLhEC4TgzE/ftPYDu0J2wtewjQyRl1alRGvry5wd2cKGqG2c7NOwhKw2RhILkPnJNaEK5d2E9Sxt6qN/r3aif6n217OcDBzT9Bzc3n5mQTTX8MJOI5g5loObjLwnGb0YBU+TVWlQpl2EpjE0bjivNhV4lUheKEyUBpiLQyZoi1NzOLkSHWgh6YAImN6BkDuzHT0c1itCD4gmUbyTcQHf2RvH9C7s+VirBUuRCfxNtI6z5YOc8ba0N8sXyuF1o2/hacvkKhEO7XaFZoyqwl1C2dK7p8VSuWocrkIXiQ27L7cNEiBIV8L7AVARK5CNkTsa9KFY3S+utSxZSPOr0nRFoHyfMPMqz9bgq+J9BXzpuE8aOGiAIfP+lMmTLif6WKi+bYzWkIVszzEaZfj7bo3qkFunVshvs0+OJuEoeNpO7TUhoT8KCQ35XmKimxf6/2WBw4HiFkDh05iSc0yFa6873+N1XxN03/cX+c33fuPSIGZnxYbKECedkqjnn34UOc96Re+Nfb127+BU7jAsDbjDnvqn65Vq9VrTz19/eKyQDujkwLXKnqJdFnZVeD8xZG3aNuHZtj+iQHzPB2FP4VRFZ++EhE4HtSpmHd6qhbuwq4G9Xgm2oo+nlCgP1zi/fqzRuY92iHZfO84DdxJByHm8PVfiB12Y6B5jSwNHgSgqe7o1jRghwkUaNQxJApUcfPlkp5P7/q7JYuBOADWosWLoCihfOjIBWurFTzJpXjrh2a4Rvqlw+2m0QD4Qn4ptVALFq+CWGXI2gWyRKlaWxgSzVg7ZaDULO5BVat2061+7PY6Lj2Gergg+4Dx8DHfzHm0CCZuzC5c+WI9cMP3M+tTn1pS/JbuWE/DHGcDB6fzJnqys4JDDfrCSxVLLggF6jYHhUa9BNToHwiw0wqnJXKlQZVzfjEpYf8M7m4FuYvvmbND8WcRWvB3QZyivOfuxDcWnClwN2+dn0dUb1pf0TcvI2iRQpiC833u3sHo8egsSJcJmpRzBRmeExEP0pjCF57EA4aXD4Qubkb1ad7G9SmrqX75Ln4tvVgtO5pDyfPmXjx4hURpjy1ju9hOdKLWvPZiKQZHWXUt2m8pHzmu+Pwfjhx6jwq1u8tJhg+UvPziUFgx8/mzeu3n590e9MpAViJFr3bo22L+knm0mOUFRo3qBXrzv3LpcFe8B1nh9ZN62KkdV/Mp35jnRqVoFAosGHZNEz2sEX/nm0xcYw1lgZNBE8ztm3RAAN6dRCFeMPyGbCjblBJ6sP3oJZjztTR4HjZT//eHUQ/mt+XUOvAA7Uh/Ttj0lgbbFwxHVUq/A/8Zz2wB9jwM5uSxYrA3XmIIDC/Kw0PDN1p/KBq/KlmXr3AC8raP1u2LKJWbds8BgeugQOmjMKy4An4YfFUVCSScFcrP3UDOV43R0twfzlLlswoVaIo5s1wA497hlv2RL06VTHDyxH2Vn3wFbl50SDYncZL/ajW5nRmTXaBG70XoIqG41IaPk2O42CdKO34zjL179kuFpOQgPECi5EU/1iSg7tJtapXgD3pwdvdFk0b1EajujVo/DWYxk/9aVBbVGDmSC0Fy8Nx2tMEgI/HCLBc1gO7oTi1Fg42fcFjF3ZnY9GnA+mrnUiX3x28Cg8AAAPuSURBVHVldE6AAdQXb5ccAVys0IRAVQWAC6dl/y7wGDVUGC78Svei1JLYDe0FDyqMLrYDROFhN9XCXbF8adiSH3caQLvYW4B/IIL9tCGS9CeSKAvBVyWKwHFYX3hSl8yZFKgs/OzXZlB3sOFnNiWKFaI0h4J/bZHflYbfPWigrGoG9mkP/vUWpR9uWQb27SgqAu6u8WDejsYlvEg4dc4KrPhhO81s5RUHV3EYdyrAvbq0ooFiZjFO6tSmsShMLGPZr0uiPnVdOG9s2tNAle99u7cW5/73oXUId+o+slxQ+eOunfvnyQMVa7RtXg/DKK/KFpLHWo7DzAXZ3ch/o3o1hXee2XKw6QfWybDBPUW3yGl4DAF49s6RBsgclj0XKVQAdkQC1pHNwO5gmdkvty7szsaFZre4m6rUBdvpwuiUALrIkKGlkZW6fz06N0cZmi15TN0VXlhqWr8W1i+ZGktmQ8uTIckrCaAH2qpD/ewttCB4ZMcSsFlF3aXKn7teeiBemoqQ3pFLAqS3BmT66YqAJEC6wi8TT28EJAHSWwMy/XRFQBIgXeGXiac3ApIA6a0BmX66IpCOBEjXfMvEJQICAUkAAYO8mCoCkgCmqnmZb4GAJICAQV5MFQFJAFPVvMy3QEASQMCg44tMTm8QkATQG1VIQdIDAUmA9EBdpqk3CEgC6I0qpCDpgYAkQHqgLtPUGwQkAfRGFaYhiL7lUhJA3zQi5dEpApIAOoVbJqZvCEgC6JtGpDw6RUASQKdwy8T0DQFJAH3TiJRHpwjokAA6zZdMTCKgEQKSABrBJD0ZKwKSAMaqWZkvjRCQBNAIJunJWBGQBDBWzcp8aYSAJIBGMH2hJxlcbxGQBNBb1UjBdIGAJIAuUJZp6C0CkgB6qxopmC4QkATQBcoyDb1FQBJAb1VjHILpey4kAfRdQ1K+NEVAEiBN4ZWR6zsCkgD6riEpX5oiIAmQpvDKyPUdAUkAfdeQlC9NEUhDAqSp3DJyiYBWEJAE0AqMMhJDRUASwFA1J+XWCgKSAFqBUUZiqAhIAhiq5qTcWkFAEkArMMaLRL4aDAKSAAajKiloWiAgCZAWqMo4DQYBSQCDUZUUNC0QkARIC1RlnAaDgCSAwajKMAQ1NCklAQxNY1JerSIgCaBVOGVkhoaAJIChaUzKq1UEJAG0CqeMzNAQkAQwNI1JebWKgBYJoFW5ZGQSAZ0gIAmgE5hlIvqKgCSAvmpGyqUTBCQBdAKzTERfEZAE0FfNSLl0goAkgDZglnEYLAKSAAarOim4NhCQBNAGijIOg0VAEsBgVScF1wYCkgDaQFHGYbAISAIYrOr0Q3BDl+L/AAAA//9aobwFAAAABklEQVQDAGquBs9snnTEAAAAAElFTkSuQmCC" alt="Precision Digital Health logo" style="width:52px;height:52px;border-radius:10px;">
+  <div style="text-align:left;">
+    <div style="font-size:0.75rem;color:#5c6bc0;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;">Precision Digital Health</div>
+    <h1 style="font-size:1.6rem;margin:0;">🌟 Dr. Sunny</h1>
+  </div>
+</div>
+<p class="tagline">Your friendly health helper robot!</p>
+
+<div class="main">
+
+  <!-- Robot + bubble -->
+  <div class="robot-wrap">
+    <div class="speech-bubble" id="bubble">
+      <span id="bubble-text">G'day! I'm Dr. Sunny! Ask me anything about staying healthy! 😊</span>
+      <div class="typing-dots" id="dots"><span></span><span></span><span></span></div>
+    </div>
+
+    <svg class="robot-svg" id="robot" viewBox="0 0 180 240" xmlns="http://www.w3.org/2000/svg">
+      <!-- Antenna -->
+      <line x1="90" y1="18" x2="90" y2="38" stroke="#5c6bc0" stroke-width="4" stroke-linecap="round"/>
+      <circle cx="90" cy="13" r="8" fill="#ffeb3b" stroke="#f9a825" stroke-width="2"/>
+
+      <!-- Head -->
+      <rect x="30" y="38" width="120" height="90" rx="22" fill="#5c6bc0" stroke="#3949ab" stroke-width="2.5"/>
+
+      <!-- Face plate -->
+      <rect x="42" y="50" width="96" height="66" rx="14" fill="#e8eaf6"/>
+
+      <!-- Eyes -->
+      <ellipse class="eye" cx="68" cy="78" rx="13" ry="12" fill="#fff" stroke="#3949ab" stroke-width="2"/>
+      <ellipse class="eye" cx="112" cy="78" rx="13" ry="12" fill="#fff" stroke="#3949ab" stroke-width="2"/>
+      <circle cx="68" cy="79" r="6" fill="#1a237e"/>
+      <circle cx="112" cy="79" r="6" fill="#1a237e"/>
+      <circle cx="71" cy="76" r="2.5" fill="#fff"/>
+      <circle cx="115" cy="76" r="2.5" fill="#fff"/>
+
+      <!-- Mouth happy -->
+      <path id="mouth-happy" d="M 65 103 Q 90 118 115 103" stroke="#3949ab" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+      <!-- Mouth talking (animated open/close) -->
+      <ellipse id="mouth-talk" cx="90" cy="107" rx="18" ry="8" fill="#3949ab"/>
+
+      <!-- Ears / side buttons -->
+      <circle cx="27" cy="78" r="9" fill="#7986cb" stroke="#3949ab" stroke-width="2"/>
+      <circle cx="153" cy="78" r="9" fill="#7986cb" stroke="#3949ab" stroke-width="2"/>
+      <circle cx="27" cy="78" r="4" fill="#ffeb3b"/>
+      <circle cx="153" cy="78" r="4" fill="#ffeb3b"/>
+
+      <!-- Neck -->
+      <rect x="76" y="128" width="28" height="14" rx="4" fill="#5c6bc0" stroke="#3949ab" stroke-width="1.5"/>
+
+      <!-- Body -->
+      <rect x="22" y="142" width="136" height="82" rx="18" fill="#7986cb" stroke="#5c6bc0" stroke-width="2.5"/>
+
+      <!-- Chest panel -->
+      <rect x="38" y="156" width="104" height="54" rx="10" fill="#e8eaf6" stroke="#9fa8da" stroke-width="1.5"/>
+
+      <!-- Heart icon on chest -->
+      <path d="M 82 172 C 82 169 78 165 74 168 C 70 171 70 176 74 180 L 82 188 L 90 180 C 94 176 94 171 90 168 C 86 165 82 169 82 172 Z" fill="#ef5350"/>
+
+      <!-- Chest lights -->
+      <circle cx="52" cy="184" r="6" fill="#66bb6a"/>
+      <circle cx="128" cy="184" r="6" fill="#ff7043"/>
+
+      <!-- Arms -->
+      <rect x="0"   y="148" width="24" height="60" rx="12" fill="#7986cb" stroke="#5c6bc0" stroke-width="2"/>
+      <rect x="156" y="148" width="24" height="60" rx="12" fill="#7986cb" stroke="#5c6bc0" stroke-width="2"/>
+
+      <!-- Hands -->
+      <circle cx="12"  cy="214" r="12" fill="#5c6bc0" stroke="#3949ab" stroke-width="2"/>
+      <circle cx="168" cy="214" r="12" fill="#5c6bc0" stroke="#3949ab" stroke-width="2"/>
+
+      <!-- Legs -->
+      <rect x="48"  y="224" width="34" height="16" rx="8" fill="#5c6bc0" stroke="#3949ab" stroke-width="1.5"/>
+      <rect x="98"  y="224" width="34" height="16" rx="8" fill="#5c6bc0" stroke="#3949ab" stroke-width="1.5"/>
+    </svg>
+  </div>
+
+  <!-- Suggestion buttons -->
+  <div class="suggestions">
+    <button class="sug-btn" onclick="ask('Why do we need to sleep?')">💤 Why do we sleep?</button>
+    <button class="sug-btn" onclick="ask('Why should I eat vegetables?')">🥦 Why eat veggies?</button>
+    <button class="sug-btn" onclick="ask('What happens when I get a cold?')">🤧 What is a cold?</button>
+    <button class="sug-btn" onclick="ask('Why is exercise important?')">🏃 Why exercise?</button>
+    <button class="sug-btn" onclick="ask('How does my heart work?')">❤️ My heart?</button>
+    <button class="sug-btn" onclick="ask('Why do I need to drink water?')">💧 Why drink water?</button>
+  </div>
+
+  <!-- Input -->
+  <div class="input-area">
+    <input type="text" id="input" placeholder="Ask Dr. Sunny a health question..." onkeydown="if(event.key==='Enter')sendMsg()"/>
+    <button id="send-btn" onclick="sendMsg()">Ask!</button>
+  </div>
+
+  <!-- Chat history -->
+  <div class="history" id="history"></div>
+
+  <p class="footer">Powered by AI · Precision Digital Health · Australian Science Week 2026</p>
+</div>
+
+<script>
+const SYSTEM = `You are Dr. Sunny, a cheerful friendly health robot for primary school children aged 6–12 in Australia.
+Rules:
+- Use very simple, fun, easy words. Short sentences. Max 4 sentences per reply.
+- Add 1–2 fun emojis.
+- Only answer questions about health, the human body, food, sleep, exercise, hygiene, and feelings/wellbeing.
+- If asked anything else, say "That's a great question, but I only know about health! Ask me about your body or staying healthy 😊"
+- Never diagnose or give medical advice. For anything serious say "That sounds like something to ask your mum, dad, or doctor!"
+- End with a fun health tip or encouraging line when you can.
+- Use Australian English: mum not mom, biscuit not cookie, colour not color.
+- Keep it positive and encouraging. Kids should feel happy after talking to you.`;
+
+const history = [];
+const robot = document.getElementById('robot');
+const bubble = document.getElementById('bubble');
+const bubbleText = document.getElementById('bubble-text');
+const dots = document.getElementById('dots');
+const input = document.getElementById('input');
+const sendBtn = document.getElementById('send-btn');
+const historyEl = document.getElementById('history');
+
+function addToHistory(role, text) {
+  const row = document.createElement('div');
+  row.className = 'msg-row ' + role;
+  const icon = document.createElement('span');
+  icon.className = 'msg-icon';
+  icon.textContent = role === 'bot' ? '🤖' : '🧒';
+  const bub = document.createElement('div');
+  bub.className = 'msg-bubble';
+  bub.textContent = text;
+  if (role === 'user') { row.appendChild(bub); row.appendChild(icon); }
+  else { row.appendChild(icon); row.appendChild(bub); }
+  historyEl.appendChild(row);
+  historyEl.scrollTop = historyEl.scrollHeight;
+}
+
+function setTalking(on) {
+  robot.classList.toggle('talking', on);
+}
+
+function showTyping() {
+  bubbleText.style.display = 'none';
+  dots.classList.add('show');
+  setTalking(true);
+}
+
+function showReply(text) {
+  dots.classList.remove('show');
+  bubbleText.style.display = '';
+  bubbleText.textContent = text;
+  setTalking(true);
+  setTimeout(() => setTalking(false), 3000);
+}
+
+function ask(q) {
+  input.value = q;
+  sendMsg();
+}
+
+async function sendMsg() {
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  sendBtn.disabled = true;
+  addToHistory('user', text);
+  history.push({ role: 'user', content: text });
+  showTyping();
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 300,
+        system: SYSTEM,
+        messages: history
+      })
+    });
+    const data = await res.json();
+    const reply = data.content?.[0]?.text || "Oops! I had a little glitch. Try asking again! 😊";
+    showReply(reply);
+    addToHistory('bot', reply);
+    history.push({ role: 'assistant', content: reply });
+  } catch(e) {
+    showReply("Oops! Something went wrong. Try again! 😊");
+  }
+  sendBtn.disabled = false;
+  input.focus();
+}
+</script>
+</body>
+</html>
