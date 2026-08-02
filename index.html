@@ -167,6 +167,7 @@ FOR ANYTHING SERIOUS like real pain or illness:
 - Say: "That sounds really important — please tell your mum, dad or a doctor straight away! 💙"
 
 NEVER diagnose. NEVER give medicine advice. ALWAYS be kind and encouraging.
+NEVER use markdown formatting like **, *, #, @, __ or bullet points. Just plain simple sentences.
 Use Australian English: mum not mom, colour not color.`;
 
 const history = [];
@@ -227,11 +228,20 @@ function speak(text) {
   if (!voiceOn) return;
   window.speechSynthesis.cancel();
 
-  // Strip emojis for cleaner speech
+  // Strip emojis AND markdown symbols before speaking
   const clean = text
     .replace(/[\u{1F300}-\u{1FFFF}]/gu, '')
     .replace(/[\u{2600}-\u{27BF}]/gu, '')
     .replace(/[\uFE00-\uFEFF]/gu, '')
+    .replace(/\*{1,3}(.*?)\*{1,3}/g, '$1')   // bold/italic **text** or *text*
+    .replace(/#{1,6}\s*/g, '')                 // headings # ## ###
+    .replace(/`{1,3}[^`]*`{1,3}/g, '')          // code blocks
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // links [text](url)
+    .replace(/^[-*+]\s+/gm, '')                // bullet points
+    .replace(/@\w+/g, '')                       // @mentions
+    .replace(/_{1,2}(.*?)_{1,2}/g, '$1')        // underline/italic __text__
+    .replace(/~~(.*?)~~/g, '$1')                 // strikethrough
+    .replace(/>/g, '')                           // blockquotes
     .trim();
 
   const utter = new SpeechSynthesisUtterance(clean);
