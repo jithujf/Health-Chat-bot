@@ -321,23 +321,13 @@ async function sendMsg() {
   window.speechSynthesis.cancel();
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('/api/chat', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': 'YOUR_API_KEY_HERE',
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-allow-browser': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 300,
-        system: SYSTEM,
-        messages: history
-      })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: history, system: SYSTEM })
     });
     const data = await res.json();
-    const reply = data.content?.[0]?.text || "Oops! I had a little glitch. Try asking me again 😊";
+    const reply = data.reply || "Oops! I had a little glitch. Try asking me again 😊";
     showReply(reply);
     addToHistory('bot', reply);
     history.push({ role: 'assistant', content: reply });
